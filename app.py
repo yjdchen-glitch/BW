@@ -233,6 +233,11 @@ if page == "📝 Today's Sales":
 #with tab_forecast:
 if page == "📋 Tomorrow's Forecast":
     st.subheader(f"Tomorrow's Production Plan")
+    # Show latest saved sales date
+    if st.session_state.get("last_saved"):
+        st.success(
+            f"Latest entered sales date: {st.session_state['last_saved']}"
+        )
     col1, col2, col3, col4 = st.columns(
         [170, 170, 150, 190],
         gap="small",
@@ -255,6 +260,7 @@ if page == "📋 Tomorrow's Forecast":
         )
     with col3:
         st.write("")
+        st.write("")
         rain = st.checkbox("Rain expected?")
 
     with col4:
@@ -262,17 +268,13 @@ if page == "📋 Tomorrow's Forecast":
             "Production strategy",
             ["Balanced", "Lean", "Safe Buffer"],
             width=180
-        )
-    
-    if st.session_state.get("last_saved"):
-        st.success(f"Latest entered sales date: {st.session_state['last_saved']}")
-   
+        )        
     try:
         results = make_forecast(
             sales, planning_date, temperature, rain, strategy
         )
 
-        st.write("**Tomorrow's Recommended Production**")
+        #st.write("**Tomorrow's Recommended Production**")
 
         # Display one combined table with editable recommendations
         editable = st.data_editor(
