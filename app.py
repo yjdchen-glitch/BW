@@ -57,7 +57,27 @@ tab_entry, tab_forecast, tab_history, tab_info = st.tabs(["📝 Daily entry", "�
 with tab_entry:
     st.subheader("Record today's production")
     st.write("Enter the actual units produced and leftover for each item. Check **Sold out early** only when you know it ran out before closing.")
-    entry_date = st.date_input("Sales date", value=min(date.today(), planning_date - timedelta(days=1)), key="entry_date")
+    col1, col2, col3 = st.columns([1, 1, 1], gap="medium")
+    with col1:
+        entry_date = st.date_input(
+            "Sales date",
+            value=min(date.today(), planning_date - timedelta(days=1)),
+            key="entry_date",
+            width="stretch"
+        )
+    with col2:
+        actual_temp = st.number_input(
+            "Today's actual temperature (°F)",
+            min_value=-20,
+            max_value=130,
+            value=72,
+            width="stretch"
+        )
+    with col3:
+        actual_rain = st.checkbox(
+            "Did it rain today?"
+        )    
+    #entry_date = st.date_input("Sales date", value=min(date.today(), planning_date - timedelta(days=1)), key="entry_date")
     existing = sales[sales.date.dt.date == entry_date].set_index("product")
     defaults = []
     for product in products:
@@ -69,23 +89,7 @@ with tab_entry:
             suggested = int(round(recent.produced.mean())) if not recent.empty else 0
             defaults.append({"Product": product, "Produced": suggested, "Leftover": 0, "Sold out early": False})
     #actual_temp = st.number_input("Today’s actual temperature (°F)", min_value=-20, max_value=130, value=72)
-    #actual_rain = st.checkbox("Did it rain today?")
-
-    col1, col2 = st.columns([600, 250], gap="medium")
-
-    with col1:
-        actual_temp = st.number_input(
-            "Today’s actual temperature (°F)",
-            min_value=-20,
-            max_value=130,
-            value=72,
-            width=600
-        )
-
-    with col2:
-        actual_rain = st.checkbox(
-            "Did it rain today?"
-        )
+    #actual_rain = st.checkbox("Did it rain today?")    
     
     #grid = st.data_editor(pd.DataFrame(defaults), hide_index=True, use_container_width=True,
     #                     disabled=["Product"], num_rows="fixed", key=f"grid_{entry_date}",
