@@ -69,11 +69,64 @@ with tab_entry:
             defaults.append({"Product": product, "Produced": suggested, "Leftover": 0, "Sold out early": False})
     actual_temp = st.number_input("Today’s actual temperature (°F)", min_value=-20, max_value=130, value=72)
     actual_rain = st.checkbox("Did it rain today?")
-    grid = st.data_editor(pd.DataFrame(defaults), hide_index=True, use_container_width=True,
-                         disabled=["Product"], num_rows="fixed", key=f"grid_{entry_date}",
-                         column_config={"Produced": st.column_config.NumberColumn(min_value=0, step=1, required=True),
-                                        "Leftover": st.column_config.NumberColumn(min_value=0, step=1, required=True),
-                                        "Sold out early": st.column_config.CheckboxColumn()})
+    #grid = st.data_editor(pd.DataFrame(defaults), hide_index=True, use_container_width=True,
+    #                     disabled=["Product"], num_rows="fixed", key=f"grid_{entry_date}",
+    #                     column_config={"Produced": st.column_config.NumberColumn(min_value=0, step=1, required=True),
+    #                                    "Leftover": st.column_config.NumberColumn(min_value=0, step=1, required=True),
+    #                                    "Sold out early": st.column_config.CheckboxColumn()})
+    
+
+    # Initialize editable table data for the selected date
+    table_key = f"production_table_{entry_date}"
+    version_key = f"{table_key}_version"
+
+    if table_key not in st.session_state:
+        st.session_state[table_key] = pd.DataFrame(defaults)
+        st.session_state[version_key] = 0
+
+    def update_sales(editor_key, table_key, version_key):
+        changes = st.session_state[editor_key].get("edited_rows", {})
+        df = st.session_state[table_key].copy()
+
+        for row_index, updates in changes.items():
+            for column, value in updates.items():
+                if column in ["Produced", "Leftover", "Sold out early"]:
+                    df.at[int(row_index), column] = value
+
+        st.session_state[table_key] = df
+        st.session_state[version_key] += 1
+
+    # Automatically calculate sold quantities
+    df = st.session_state[table_key].copy()
+    df["Sold"] = df["Produced"] - df["Leftover"]
+
+    editor_key = f"{table_key}_editor_{st.session_state[version_key]}"
+
+    grid = st.data_editor(
+        df,
+        hide_index=True,
+        use_container_width=True,
+        disabled=["Product", "Sold"],
+        num_rows="fixed",
+        key=editor_key,
+        on_change=update_sales,
+        args=(editor_key, table_key, version_key),
+        column_config={
+            "Produced": st.column_config.NumberColumn(
+                min_value=0, step=1, required=True
+            ),
+            "Leftover": st.column_config.NumberColumn(
+                min_value=0, step=1, required=True
+            ),
+            "Sold": st.column_config.NumberColumn(
+                help="Automatically calculated: Produced - Leftover"
+            ),
+            "Sold out early": st.column_config.CheckboxColumn()
+        }
+    )
+
+
+
     raw = grid.copy()
     raw["Sold"] = pd.to_numeric(raw["Produced"], errors="coerce") - pd.to_numeric(raw["Leftover"], errors="coerce")
     st.dataframe(raw[["Product", "Sold"]], hide_index=True, use_container_width=True)
