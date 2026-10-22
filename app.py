@@ -32,8 +32,8 @@ def save_entries(entries):
     entries.to_csv(LOCAL, index=False)
 
 st.title("🍩 BakeWise")
-st.caption("A Calmer Way to Plan Tomorrow's Baking · Prototype for Hackathon Taskforge Project")
-st.info("DEMO MODE: Historical sales data are for simulation purposes only. Weather data must be entered manually. Forecasts are estimates and may differ from actual demand.")
+st.caption("A Simple and Practical Way to Plan Tomorrow's Baking · Prototype for Hackathon Taskforge Project · By Charles Chen")
+st.info("DEMO MODE: Historical sales data are for demonstration purposes only. Weather data must be entered manually. Forecasts are estimates and may differ from actual demand.")
 
 try:
     sales = load_data()
