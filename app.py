@@ -57,7 +57,7 @@ tab_entry, tab_forecast, tab_history, tab_info = st.tabs(["ğŸ“ Daily entry", "ğ
 with tab_entry:
     st.subheader("Record today's production")
     st.write("Enter the actual units produced and leftover for each item. Check **Sold out early** only when you know it ran out before closing.")
-    col1, col2, col3 = st.columns([170, 170, 170], gap="medium")
+    col1, col2, col3 = st.columns([170, 170, 170],gap="small",width="content")
     with col1:
         entry_date = st.date_input(
             "Today's date",
