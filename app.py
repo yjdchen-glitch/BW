@@ -56,6 +56,11 @@ with st.sidebar:
 if "active_page" not in st.session_state:
     st.session_state["active_page"] = "📝 Today's Sales"
 
+if "next_page" in st.session_state:
+    st.session_state["active_page"] = st.session_state.pop("next_page")
+    
+def go_to_forecast():
+    st.session_state["active_page"] = "📋 Tomorrow's Forecast"
 page = st.segmented_control(
     "Navigation",
     [
@@ -212,7 +217,7 @@ if page == "📝 Today's Sales":
             try:
                 save_entries(records)
                 st.session_state["last_saved"] = str(entry_date)
-                st.session_state["active_page"] = "📋 Tomorrow's Forecast"
+                st.session_state["next_page"] = "📋 Tomorrow's Forecast"
                 st.rerun()
 
             except OSError as err:
