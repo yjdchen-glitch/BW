@@ -52,10 +52,10 @@ with st.sidebar:
     strategy = st.selectbox("Production strategy", ["Balanced", "Lean", "Safe Buffer"])
     st.caption("Lean and Safe Buffer use heuristic forecast-error adjustments; they are not validated profit optimizers.")
 
-tab_entry, tab_forecast, tab_history, tab_info = st.tabs(["📝 Daily entry", "📋 Production plan", "📈 History", "ℹ️ About"])
+tab_entry, tab_forecast, tab_history, tab_info = st.tabs(["📝 Today's Sales", "📋 Tomorrow's Forecast", "📈 Time History", "ℹ️ About"])
 
 with tab_entry:
-    st.subheader("Record today's production")
+    st.subheader("Today's Production and Sales")
     st.write("Enter the actual units produced and leftover for each item. Check **Sold out early** only when you know it ran out before closing.")
     col1, col2, col3 = st.columns([170, 170, 170],width=520, gap="small")    
     with col1:
@@ -190,7 +190,7 @@ with tab_entry:
                 st.dataframe(instant[["Product", "Recommended"]], hide_index=True, use_container_width=True)
             except OSError as err:
                 st.error(f"Could not save to local CSV: {err}. On cloud hosting the filesystem may not be writable or persistent.")
-    st.caption("Daily weather is entered manually for this demo. Hosted persistent storage is not implemented.")
+    #st.caption("Daily weather is entered manually for this demo. Hosted persistent storage is not implemented.")
 
 with tab_forecast:
     st.subheader(f"Recommended production · {planning_date.strftime('%A, %B %d, %Y')}")
