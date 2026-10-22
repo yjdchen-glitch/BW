@@ -63,7 +63,7 @@ with tab_entry:
             "Sales date",
             value=min(date.today(), planning_date - timedelta(days=1)),
             key="entry_date",
-            width="stretch"
+            width=250
         )
     with col2:
         actual_temp = st.number_input(
@@ -71,9 +71,10 @@ with tab_entry:
             min_value=-20,
             max_value=130,
             value=72,
-            width="stretch"
+            width=250
         )
     with col3:
+        st.write("")  # Adds vertical spacing
         actual_rain = st.checkbox(
             "Did it rain today?"
         )    
