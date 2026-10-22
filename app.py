@@ -76,7 +76,7 @@ with tab_entry:
     with col3:
         st.write("")  # Adds vertical spacing
         actual_rain = st.checkbox(
-            "Did it rain today?"
+            "Rain today?"
         )    
     #entry_date = st.date_input("Sales date", value=min(date.today(), planning_date - timedelta(days=1)), key="entry_date")
     existing = sales[sales.date.dt.date == entry_date].set_index("product")
