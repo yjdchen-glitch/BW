@@ -349,7 +349,7 @@ if page == "📋 Tomorrow's Forecast":
 #with tab_history:
 if page == "📈 Time History":
     st.subheader("Historical Production Results")
-    selected = st.selectbox("Pick a Product", products)
+    selected = st.selectbox("Select a Product", products)
     chart = sales[sales["product"] == selected].sort_values("date")
     st.line_chart(chart.set_index("date")[["sold", "leftover"]])
     st.download_button("Download combined sales CSV", sales.to_csv(index=False), file_name="bakewise_sales.csv", mime="text/csv")
