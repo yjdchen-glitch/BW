@@ -105,24 +105,34 @@ with tab_entry:
     grid = st.data_editor(
         df,
         hide_index=True,        
-        width=900,
+        width=800,
         disabled=["Product", "Sold"],
         num_rows="fixed",
         key=editor_key,
         on_change=update_sales,
         args=(editor_key, table_key, version_key),
+
         column_config={
+            "Product": st.column_config.TextColumn(
+                alignment="center"
+            ),
             "Produced": st.column_config.NumberColumn(
-                min_value=0, step=1, required=True
+                min_value=0, step=1, required=True,
+                alignment="center"
             ),
             "Leftover": st.column_config.NumberColumn(
-                min_value=0, step=1, required=True
+                min_value=0, step=1, required=True,
+                alignment="center"
             ),
             "Sold": st.column_config.NumberColumn(
-                help="Automatically calculated: Produced - Leftover"
+                help="Automatically calculated: Produced - Leftover",
+                alignment="center"
             ),
-            "Sold out early": st.column_config.CheckboxColumn()
+            "Sold out early": st.column_config.CheckboxColumn(
+                alignment="center"
+            )
         }
+
     )
 
 
