@@ -57,21 +57,21 @@ tab_entry, tab_forecast, tab_history, tab_info = st.tabs(["📝 Daily entry", "�
 with tab_entry:
     st.subheader("Record today's production")
     st.write("Enter the actual units produced and leftover for each item. Check **Sold out early** only when you know it ran out before closing.")
-    col1, col2, col3 = st.columns([1, 1, 1], gap="medium")
+    col1, col2, col3 = st.columns([170, 170, 170], gap="medium")
     with col1:
         entry_date = st.date_input(
-            "Sales date",
+            "Today's date",
             value=min(date.today(), planning_date - timedelta(days=1)),
             key="entry_date",
-            width=250
+            width=150
         )
     with col2:
         actual_temp = st.number_input(
-            "Today's actual temperature (°F)",
+            "Actual temperature (°F)",
             min_value=-20,
             max_value=130,
             value=72,
-            width=250
+            width=150
         )
     with col3:
         st.write("")  # Adds vertical spacing
