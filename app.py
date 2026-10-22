@@ -105,7 +105,7 @@ with tab_entry:
     grid = st.data_editor(
         df,
         hide_index=True,        
-        width="900",
+        width=900,
         disabled=["Product", "Sold"],
         num_rows="fixed",
         key=editor_key,
