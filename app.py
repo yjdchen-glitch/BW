@@ -44,13 +44,17 @@ except Exception as err:
 
 products = sorted(sales["product"].unique().tolist())
 latest = sales.date.max().date()
-with st.sidebar:
-    st.header("Tomorrow's plan")
-    planning_date = st.date_input("Production date", value=max(date.today() + timedelta(days=1), latest + timedelta(days=1)))
-    temperature = st.number_input("Expected temperature (°F)", min_value=-20, max_value=130, value=72)
-    rain = st.checkbox("Rain expected")
-    strategy = st.selectbox("Production strategy", ["Balanced", "Lean", "Safe Buffer"])
-    st.caption("Lean and Safe Buffer use heuristic forecast-error adjustments; they are not validated profit optimizers.")
+#with st.sidebar:
+#    st.header("Tomorrow's plan")
+#    planning_date = st.date_input("Production date", value=max(date.today() + timedelta(days=1), latest + timedelta(days=1)))
+#    temperature = st.number_input("Expected temperature (°F)", min_value=-20, max_value=130, value=72)
+#    rain = st.checkbox("Rain expected")
+#    strategy = st.selectbox("Production strategy", ["Balanced", "Lean", "Safe Buffer"])
+#    st.caption("Lean and Safe Buffer use heuristic forecast-error adjustments; they are not validated profit optimizers.")
+planning_date = st.session_state.get(
+    "planning_date",
+    max(date.today() + timedelta(days=1), latest + timedelta(days=1))
+)
 
 #tab_entry, tab_forecast, tab_history, tab_info = st.tabs(["📝 Today's Sales", "📋 Tomorrow's Forecast", "📈 Time History", "ℹ️ About"])
 if "active_page" not in st.session_state:
@@ -228,12 +232,43 @@ if page == "📝 Today's Sales":
 
 #with tab_forecast:
 if page == "📋 Tomorrow's Forecast":
-    st.subheader(f"Recommended production · {planning_date.strftime('%A, %B %d, %Y')}")
+    st.subheader(f"Tomorrow's Production Plan · {planning_date.strftime('%A, %B %d, %Y')}")
+    col1, col2, col3, col4 = st.columns(
+        [170, 170, 150, 190],
+        gap="small",
+        width=760
+    )
+    with col1:
+        planning_date = st.date_input(
+            "Production date",
+            value=planning_date,
+            key="planning_date",
+            width=150
+        )
+    with col2:
+        temperature = st.number_input(
+            "Expected temperature (°F)",
+            min_value=-20,
+            max_value=130,
+            value=72,
+            width=150
+        )
+    with col3:
+        st.write("")
+        rain = st.checkbox("Rain expected?")
+
+    with col4:
+        strategy = st.selectbox(
+            "Production strategy",
+            ["Balanced", "Lean", "Safe Buffer"],
+            width=180
+        )
+    
     if st.session_state.get("last_saved"):
         st.success(f"Latest entered sales date: {st.session_state['last_saved']}")
     try:
         results = make_forecast(sales, planning_date, temperature, rain, strategy)
-        st.metric("Total recommended units", f"{int(results['Recommended'].sum()):,}")
+        #st.metric("Total recommended units", f"{int(results['Recommended'].sum()):,}")
         st.dataframe(results, hide_index=True, use_container_width=True)
         st.caption("Holdout MAE = mean absolute error on the latest 20% of eligible historical observations, in units. This demonstration uses synthetic data and does not establish real-world predictive accuracy.")
         editable = st.data_editor(results[["Product", "Recommended"]], hide_index=True,
