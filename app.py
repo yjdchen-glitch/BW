@@ -68,8 +68,25 @@ with tab_entry:
             recent = sales[(sales["product"] == product) & (sales.date.dt.date < entry_date)].tail(7)
             suggested = int(round(recent.produced.mean())) if not recent.empty else 0
             defaults.append({"Product": product, "Produced": suggested, "Leftover": 0, "Sold out early": False})
-    actual_temp = st.number_input("Today’s actual temperature (°F)", min_value=-20, max_value=130, value=72)
-    actual_rain = st.checkbox("Did it rain today?")
+    #actual_temp = st.number_input("Today’s actual temperature (°F)", min_value=-20, max_value=130, value=72)
+    #actual_rain = st.checkbox("Did it rain today?")
+
+    col1, col2 = st.columns([600, 250], gap="medium")
+
+    with col1:
+        actual_temp = st.number_input(
+            "Today’s actual temperature (°F)",
+            min_value=-20,
+            max_value=130,
+            value=72,
+            width=600
+        )
+
+    with col2:
+        actual_rain = st.checkbox(
+            "Did it rain today?"
+        )
+    
     #grid = st.data_editor(pd.DataFrame(defaults), hide_index=True, use_container_width=True,
     #                     disabled=["Product"], num_rows="fixed", key=f"grid_{entry_date}",
     #                     column_config={"Produced": st.column_config.NumberColumn(min_value=0, step=1, required=True),
