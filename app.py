@@ -232,7 +232,7 @@ if page == "📝 Today's Sales":
 
 #with tab_forecast:
 if page == "📋 Tomorrow's Forecast":
-    st.subheader(f"Tomorrow's Production Plan · {planning_date.strftime('%A, %B %d, %Y')}")
+    st.subheader(f"Tomorrow's Production Plan")
     col1, col2, col3, col4 = st.columns(
         [170, 170, 150, 190],
         gap="small",
@@ -240,7 +240,7 @@ if page == "📋 Tomorrow's Forecast":
     )
     with col1:
         planning_date = st.date_input(
-            "Production date",
+            "Tomorrow date",
             value=planning_date,
             key="planning_date",
             width=150
@@ -251,7 +251,7 @@ if page == "📋 Tomorrow's Forecast":
             min_value=-20,
             max_value=130,
             value=72,
-            width=150
+            width=180
         )
     with col3:
         st.write("")
@@ -266,26 +266,83 @@ if page == "📋 Tomorrow's Forecast":
     
     if st.session_state.get("last_saved"):
         st.success(f"Latest entered sales date: {st.session_state['last_saved']}")
+   
     try:
-        results = make_forecast(sales, planning_date, temperature, rain, strategy)
-        #st.metric("Total recommended units", f"{int(results['Recommended'].sum()):,}")
-        st.dataframe(results, hide_index=True, use_container_width=True)
-        st.caption("Holdout MAE = mean absolute error on the latest 20% of eligible historical observations, in units. This demonstration uses synthetic data and does not establish real-world predictive accuracy.")
-        editable = st.data_editor(results[["Product", "Recommended"]], hide_index=True,
-                                  disabled=["Product"], use_container_width=True, key="forecast_adjustments",
-                                  column_config={"Recommended": st.column_config.NumberColumn(min_value=0, step=1, required=True)})
-        quantities = pd.to_numeric(editable["Recommended"], errors="coerce")
-        if quantities.isna().any() or (quantities < 0).any() or (quantities % 1 != 0).any():
-            st.warning("Please enter valid whole-number production quantities.")
+        results = make_forecast(
+            sales, planning_date, temperature, rain, strategy
+        )
+
+        st.write("**Tomorrow's Recommended Production**")
+
+        # Display one combined table with editable recommendations
+        editable = st.data_editor(
+            results[["Product", "Expected sales", "Recommended"]],
+            hide_index=True,
+            width=700,
+            disabled=["Product", "Expected sales"],
+            num_rows="fixed",
+            key=f"forecast_adjustments_{planning_date}_{temperature}_{rain}_{strategy}",
+            column_config={
+                "Product": st.column_config.TextColumn(
+                    alignment="center"
+                ),
+                "Expected sales": st.column_config.NumberColumn(
+                    alignment="center",
+                    format="%.1f"
+                ),
+                "Recommended": st.column_config.NumberColumn(
+                    min_value=0,
+                    step=1,
+                    required=True,
+                    alignment="center"
+                )
+            }
+        )
+
+        # Validate manual adjustments
+        quantities = pd.to_numeric(
+            editable["Recommended"], errors="coerce"
+        )
+
+        if (
+            quantities.isna().any()
+            or (quantities < 0).any()
+            or (quantities % 1 != 0).any()
+        ):
+            st.warning(
+                "Please enter valid whole-number production quantities."
+            )
+
         else:
-            lines = [f"BakeWise production plan · {planning_date.isoformat()}", f"Strategy: {strategy}", ""]
-            lines += [f"{row['Product']}: {int(row['Recommended'])} units" for _, row in editable.iterrows()]
+            # Generate downloadable production plan
+            lines = [
+                f"BakeWise production plan · {planning_date.isoformat()}",
+                f"Strategy: {strategy}",
+                ""
+            ]
+
+            lines += [
+                f"{row['Product']}: {int(row['Recommended'])} units"
+                for _, row in editable.iterrows()
+            ]
+
             text_plan = "\n".join(lines)
-            st.download_button("Download production plan (.txt)", text_plan, file_name=f"bakewise_plan_{planning_date}.txt")
-            st.code(text_plan, language="text")
-            st.caption("Share the downloaded plan with staff. Automatic scheduled email is not included in this MVP.")
+
+            st.download_button(
+                "Download Production Plan (.txt)",
+                text_plan,
+                file_name=f"bakewise_plan_{planning_date}.txt",
+                mime="text/plain"
+            )
+
+            st.caption(
+                "Share the downloaded plan with staff. "
+                "Automatic scheduled email is not included in this prototype."
+            )
+
     except Exception as err:
         st.error(f"Forecast error: {err}")
+
 
 #with tab_history:
 if page == "📈 Time History":
