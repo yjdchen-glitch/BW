@@ -75,7 +75,6 @@ with tab_entry:
     #                                    "Leftover": st.column_config.NumberColumn(min_value=0, step=1, required=True),
     #                                    "Sold out early": st.column_config.CheckboxColumn()})
     
-
     # Initialize editable table data for the selected date
     table_key = f"production_table_{entry_date}"
     version_key = f"{table_key}_version"
@@ -127,9 +126,9 @@ with tab_entry:
 
 
 
-    raw = grid.copy()
-    raw["Sold"] = pd.to_numeric(raw["Produced"], errors="coerce") - pd.to_numeric(raw["Leftover"], errors="coerce")
-    st.dataframe(raw[["Product", "Sold"]], hide_index=True, use_container_width=True)
+    #raw = grid.copy()
+    #raw["Sold"] = pd.to_numeric(raw["Produced"], errors="coerce") - pd.to_numeric(raw["Leftover"], errors="coerce")
+    #st.dataframe(raw[["Product", "Sold"]], hide_index=True, use_container_width=True)
     if st.button("Save today's data and show forecast", type="primary"):
         invalid = False
         for c in ["Produced", "Leftover"]:
