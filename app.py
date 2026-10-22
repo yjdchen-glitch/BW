@@ -9,6 +9,29 @@ ROOT = Path(__file__).resolve().parent
 DEMO = ROOT / "data" / "historical_sales.csv"
 LOCAL = ROOT / "data" / "local_entries.csv"
 st.set_page_config(page_title="BakeWise | Daily Baking Plan", page_icon="🍩", layout="wide")
+# make contents fit the device window
+
+st.markdown("""
+<style>
+/* Limit the table width on desktop */
+@media (min-width: 900px) {
+    div[data-testid="stDataEditor"] {
+        max-width: 950px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+}
+
+/* Use available width on mobile */
+@media (max-width: 899px) {
+    div[data-testid="stDataEditor"] {
+        width: 100%;
+        max-width: 100%;
+    }
+}
+</style>
+""", unsafe_allow_html=True)
+
 
 @st.cache_data
 def demo_data():
@@ -100,11 +123,11 @@ with tab_entry:
     df["Sold"] = df["Produced"] - df["Leftover"]
 
     editor_key = f"{table_key}_editor_{st.session_state[version_key]}"
-
+    #use_container_width=True,
     grid = st.data_editor(
         df,
-        hide_index=True,
-        use_container_width=True,
+        hide_index=True,        
+        width="stretch",
         disabled=["Product", "Sold"],
         num_rows="fixed",
         key=editor_key,
