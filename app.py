@@ -1,0 +1,150 @@
+"""BakeWise: practical bakery planning demo (Streamlit)."""
+from datetime import date, timedelta
+from pathlib import Path
+import pandas as pd
+import streamlit as st
+from forecast import validate_sales, make_forecast
+
+ROOT = Path(__file__).resolve().parent
+DEMO = ROOT / "data" / "historical_sales.csv"
+LOCAL = ROOT / "data" / "local_entries.csv"
+st.set_page_config(page_title="BakeWise | Daily Baking Plan", page_icon="🍩", layout="wide")
+
+@st.cache_data
+def demo_data():
+    return validate_sales(pd.read_csv(DEMO))
+
+def load_data():
+    base = demo_data()
+    if LOCAL.exists():
+        extra = pd.read_csv(LOCAL)
+        if not extra.empty:
+            combined = pd.concat([base, extra], ignore_index=True)
+            combined = combined.drop_duplicates(["date", "product"], keep="last")
+            return validate_sales(combined)
+    return base
+
+def save_entries(entries):
+    if LOCAL.exists():
+        old = pd.read_csv(LOCAL)
+        entries = pd.concat([old, entries], ignore_index=True)
+    entries = entries.drop_duplicates(["date", "product"], keep="last")
+    entries.to_csv(LOCAL, index=False)
+
+st.title("🍩 BakeWise")
+st.caption("A calmer way to plan tomorrow's baking · Hackathon prototype")
+st.info("DEMO MODE: historical sales are synthetic. Weather is entered manually. Forecasts are estimates, not guaranteed demand. Saved CSV changes are local to this running instance and may disappear on cloud hosting.")
+
+try:
+    sales = load_data()
+except Exception as err:
+    st.error(f"Cannot load sales data: {err}")
+    st.stop()
+
+products = sorted(sales["product"].unique().tolist())
+latest = sales.date.max().date()
+with st.sidebar:
+    st.header("Tomorrow's plan")
+    planning_date = st.date_input("Production date", value=max(date.today() + timedelta(days=1), latest + timedelta(days=1)))
+    temperature = st.number_input("Expected temperature (°F)", min_value=-20, max_value=130, value=72)
+    rain = st.checkbox("Rain expected")
+    strategy = st.selectbox("Production strategy", ["Balanced", "Lean", "Safe Buffer"])
+    st.caption("Lean and Safe Buffer use heuristic forecast-error adjustments; they are not validated profit optimizers.")
+
+tab_entry, tab_forecast, tab_history, tab_info = st.tabs(["📝 Daily entry", "📋 Production plan", "📈 History", "ℹ️ About"])
+
+with tab_entry:
+    st.subheader("Record today's production")
+    st.write("Enter the actual units produced and leftover for each item. Check **Sold out early** only when you know it ran out before closing.")
+    entry_date = st.date_input("Sales date", value=min(date.today(), planning_date - timedelta(days=1)), key="entry_date")
+    existing = sales[sales.date.dt.date == entry_date].set_index("product")
+    defaults = []
+    for product in products:
+        if product in existing.index:
+            r = existing.loc[product]
+            defaults.append({"Product": product, "Produced": int(r.produced), "Leftover": int(r.leftover), "Sold out early": bool(r.sold_out_early)})
+        else:
+            recent = sales[(sales["product"] == product) & (sales.date.dt.date < entry_date)].tail(7)
+            suggested = int(round(recent.produced.mean())) if not recent.empty else 0
+            defaults.append({"Product": product, "Produced": suggested, "Leftover": 0, "Sold out early": False})
+    actual_temp = st.number_input("Today’s actual temperature (°F)", min_value=-20, max_value=130, value=72)
+    actual_rain = st.checkbox("Did it rain today?")
+    grid = st.data_editor(pd.DataFrame(defaults), hide_index=True, use_container_width=True,
+                         disabled=["Product"], num_rows="fixed", key=f"grid_{entry_date}",
+                         column_config={"Produced": st.column_config.NumberColumn(min_value=0, step=1, required=True),
+                                        "Leftover": st.column_config.NumberColumn(min_value=0, step=1, required=True),
+                                        "Sold out early": st.column_config.CheckboxColumn()})
+    raw = grid.copy()
+    raw["Sold"] = pd.to_numeric(raw["Produced"], errors="coerce") - pd.to_numeric(raw["Leftover"], errors="coerce")
+    st.dataframe(raw[["Product", "Sold"]], hide_index=True, use_container_width=True)
+    if st.button("Save today's data and show forecast", type="primary"):
+        invalid = False
+        for c in ["Produced", "Leftover"]:
+            v = pd.to_numeric(grid[c], errors="coerce")
+            if v.isna().any() or (v < 0).any() or (v % 1 != 0).any():
+                invalid = True
+        if not invalid and (pd.to_numeric(grid["Leftover"]) > pd.to_numeric(grid["Produced"])).any():
+            invalid = True
+        if entry_date >= planning_date:
+            st.error("The forecast date must be after the sales-entry date.")
+        elif invalid:
+            st.error("Use nonnegative whole numbers; leftovers cannot exceed production.")
+        else:
+            records = pd.DataFrame({"date": [str(entry_date)] * len(grid),
+                                    "product": grid["Product"], "produced": grid["Produced"].astype(int),
+                                    "leftover": grid["Leftover"].astype(int),
+                                    "sold_out_early": grid["Sold out early"].astype(bool),
+                                    "temperature_f": [actual_temp] * len(grid), "rain": [int(actual_rain)] * len(grid)})
+            try:
+                save_entries(records)
+                st.session_state["last_saved"] = str(entry_date)
+                st.success("Sales saved! Updated recommendations are shown below; they are also available under Production plan.")
+                # Show the resulting prediction on the same screen immediately.
+                refreshed = load_data()
+                instant = make_forecast(refreshed, planning_date, temperature, rain, strategy)
+                st.dataframe(instant[["Product", "Recommended"]], hide_index=True, use_container_width=True)
+            except OSError as err:
+                st.error(f"Could not save to local CSV: {err}. On cloud hosting the filesystem may not be writable or persistent.")
+    st.caption("Daily weather is entered manually for this demo. Hosted persistent storage is not implemented.")
+
+with tab_forecast:
+    st.subheader(f"Recommended production · {planning_date.strftime('%A, %B %d, %Y')}")
+    if st.session_state.get("last_saved"):
+        st.success(f"Latest entered sales date: {st.session_state['last_saved']}")
+    try:
+        results = make_forecast(sales, planning_date, temperature, rain, strategy)
+        st.metric("Total recommended units", f"{int(results['Recommended'].sum()):,}")
+        st.dataframe(results, hide_index=True, use_container_width=True)
+        st.caption("Holdout MAE = mean absolute error on the latest 20% of eligible historical observations, in units. This demonstration uses synthetic data and does not establish real-world predictive accuracy.")
+        editable = st.data_editor(results[["Product", "Recommended"]], hide_index=True,
+                                  disabled=["Product"], use_container_width=True, key="forecast_adjustments",
+                                  column_config={"Recommended": st.column_config.NumberColumn(min_value=0, step=1, required=True)})
+        quantities = pd.to_numeric(editable["Recommended"], errors="coerce")
+        if quantities.isna().any() or (quantities < 0).any() or (quantities % 1 != 0).any():
+            st.warning("Please enter valid whole-number production quantities.")
+        else:
+            lines = [f"BakeWise production plan · {planning_date.isoformat()}", f"Strategy: {strategy}", ""]
+            lines += [f"{row['Product']}: {int(row['Recommended'])} units" for _, row in editable.iterrows()]
+            text_plan = "\n".join(lines)
+            st.download_button("Download production plan (.txt)", text_plan, file_name=f"bakewise_plan_{planning_date}.txt")
+            st.code(text_plan, language="text")
+            st.caption("Share the downloaded plan with staff. Automatic scheduled email is not included in this MVP.")
+    except Exception as err:
+        st.error(f"Forecast error: {err}")
+
+with tab_history:
+    st.subheader("Historical results")
+    selected = st.selectbox("Product", products)
+    chart = sales[sales["product"] == selected].sort_values("date")
+    st.line_chart(chart.set_index("date")[["sold", "leftover"]])
+    st.download_button("Download combined sales CSV", sales.to_csv(index=False), file_name="bakewise_sales.csv", mime="text/csv")
+    st.caption("Sample history is synthetically generated. Historical plots are optional for deeper review.")
+
+with tab_info:
+    st.markdown("""### How it works
+1. Enter units **produced**, **left over**, and whether each product **sold out early**.
+2. BakeWise calculates observed sales and estimates each product's next-day demand using weekday, US federal holiday, temperature, rain, and time-trend features.
+3. The model uses ridge regression when sufficient history exists and a recent weekday average otherwise. Known early stockouts are excluded from fitting when possible, because observed sales may understate demand.
+4. Choose a production strategy, inspect the plan, make adjustments, and download it.
+
+**Limitations:** This is a single-shop educational demo. It ships with synthetic history, manual forecast-weather inputs, and heuristic risk settings. It has no live weather integration, POS connection, user authentication, durable hosted storage, or scheduled email delivery. Local CSV updates should not be relied on for a production web deployment.""")
