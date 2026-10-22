@@ -11,28 +11,6 @@ LOCAL = ROOT / "data" / "local_entries.csv"
 st.set_page_config(page_title="BakeWise | Daily Baking Plan", page_icon="🍩", layout="wide")
 # make contents fit the device window
 
-st.markdown("""
-<style>
-/* Limit the table width on desktop */
-@media (min-width: 900px) {
-    div[data-testid="stDataEditor"] {
-        max-width: 950px;
-        margin-left: auto;
-        margin-right: auto;
-    }
-}
-
-/* Use available width on mobile */
-@media (max-width: 899px) {
-    div[data-testid="stDataEditor"] {
-        width: 100%;
-        max-width: 100%;
-    }
-}
-</style>
-""", unsafe_allow_html=True)
-
-
 @st.cache_data
 def demo_data():
     return validate_sales(pd.read_csv(DEMO))
@@ -127,7 +105,7 @@ with tab_entry:
     grid = st.data_editor(
         df,
         hide_index=True,        
-        width="stretch",
+        width="900",
         disabled=["Product", "Sold"],
         num_rows="fixed",
         key=editor_key,
