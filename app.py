@@ -410,8 +410,11 @@ if page == "ℹ️ About":
 3. The forecasting model uses Ridge regression with multiple variables, including weekdays, holidays, weather conditions, and historical sales trends. 
 
 **Production Strategies:**
+
 Lean: Prioritizes reducing leftover food and waste by recommending lower production quantities, with a higher risk of selling out.
+
 Balanced: Balances the risk of leftover food against potential lost sales, providing a middle-ground recommendation.
+
 Safe Buffer: Prioritizes product availability by recommending higher production quantities to reduce the risk of stockouts, with a greater chance of leftovers.
 
 **Limitations:** This is an educational prototype using synthetic historical sales data and manually entered weather information.
