@@ -405,8 +405,9 @@ if page == "📈 Time History":
 if page == "ℹ️ About":    
     st.markdown("""### How it works
 1. Enter units **produced**, **left over**, and whether each product **sold out early**.
-2. BakeWise calculates observed sales and estimates each product's next-day demand using weekday, US federal holiday, temperature, rain, and time-trend features.
-3. The model uses ridge regression when sufficient history exists and a recent weekday average otherwise. Known early stockouts are excluded from fitting when possible, because observed sales may understate demand.
-4. Choose a production strategy, inspect the plan, make adjustments, and download it.
+2. BakeWise calculates observed sales and forecast each product's next-day demand.
+3. The forecasting model uses Ridge regression with multiple variables, including weekdays, holidays, weather conditions, and historical sales trends. 
+**Limitations:** This is an educational prototype using synthetic historical sales data and manually entered weather information.
 
-**Limitations:** This is a single-shop educational demo. It ships with synthetic history, manual forecast-weather inputs, and heuristic risk settings. It has no live weather integration, POS connection, user authentication, durable hosted storage, or scheduled email delivery. Local CSV updates should not be relied on for a production web deployment.""")
+**Future Improvements:** Planned enhancements include live weather integration, point-of-sale (POS) connectivity, user authentication, persistent cloud storage, and automated email and text message delivery. Future versions may also incorporate more advanced machine learning techniques to improve forecasting accuracy.
+""")
