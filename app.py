@@ -36,7 +36,7 @@ def save_entries(entries):
 
 st.title("🍩 BakeWise")
 st.caption("A Simple and Practical Way to Plan Tomorrow's Baking · Prototype for Hackathon Taskforge Project · By Charles Chen")
-st.info("DEMO MODE: Historical sales data are for demonstration purposes only. Weather data must be entered manually. Forecasts are estimates and may differ from actual demand.")
+st.info("DEMO MODE: All sales data are for demonstration purposes only.")
 
 try:
     sales = load_data()
@@ -82,7 +82,7 @@ page = st.segmented_control(
 #with tab_entry:
 if page == "📝 Today's Sales":
     st.subheader("Today's Production and Sales")
-    st.write("Enter the actual units produced and leftover for each item. Check **Sold out early** only when you know it ran out before closing.")
+    st.write("Enter the actual **Produced** and **Leftover** quantities for each product. The **Sold** column is calculated automatically. Check **Sold out early** only if the product ran out before closing.")
     col1, col2, col3 = st.columns([170, 170, 170],width=520, gap="small")    
     with col1:
         entry_date = st.date_input(
@@ -280,17 +280,17 @@ if page == "📋 Tomorrow's Forecast":
 
         # Display one combined table with editable recommendations
         editable = st.data_editor(
-            results[["Product", "Expected sales", "Recommended"]],
+            results[["Product", "Forecasted", "Recommended"]],
             hide_index=True,
             width=700,
-            disabled=["Product", "Expected sales"],
+            disabled=["Product", "Forecasted"],
             num_rows="fixed",
             key=f"forecast_adjustments_{planning_date}_{temperature}_{rain}_{strategy}",
             column_config={
                 "Product": st.column_config.TextColumn(
                     alignment="center"
                 ),
-                "Expected sales": st.column_config.NumberColumn(
+                "Forecasted": st.column_config.NumberColumn(
                     alignment="center",
                     format="%.1f"
                 ),
