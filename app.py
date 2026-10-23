@@ -342,10 +342,10 @@ if page == "📋 Tomorrow's Forecast":
             )           
             
             st.divider()
-            st.subheader("**Send Production Plan — Notification Test**")
+            st.subheader("**Send Production Plan**")
             st.caption("Share the production plan with staff. Automatic scheduled email and text message are currently not included in this prototype.")
             recipients_text = st.text_input(
-                "Recipient email address(es)",
+                "Recipient email address(es) - pre",
                 placeholder="owner@example.com, baker@example.com",
                 help="Separate multiple email addresses with commas.",
                 key="notification_recipients"
@@ -391,7 +391,7 @@ if page == "📋 Tomorrow's Forecast":
            
     except Exception as err:
         st.error(f"Forecast error: {err}")
-
+    st.caption("**Email Notification (Demo):** For testing purposes, emails can only be sent to a predefined recipient address. Sending to additional recipients will be supported in future versions.")
 
 #with tab_history:
 if page == "📈 Time History":
