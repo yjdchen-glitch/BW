@@ -332,7 +332,8 @@ if page == "📋 Tomorrow's Forecast":
             ]
 
             text_plan = "\n".join(lines)
-
+            st.write("The **Recommended** column is editable, allowing owners to adjust planned production quantities for special circumstances, such as large pre-orders, group events, or planned promotions.")
+            
             st.download_button(
                 "Download Production Plan (.txt)",
                 text_plan,
@@ -407,6 +408,12 @@ if page == "ℹ️ About":
 1. Enter units **produced**, **left over**, and whether each product **sold out early**.
 2. BakeWise calculates observed sales and forecast each product's next-day demand.
 3. The forecasting model uses Ridge regression with multiple variables, including weekdays, holidays, weather conditions, and historical sales trends. 
+
+**Production Strategies:**
+Lean: Prioritizes reducing leftover food and waste by recommending lower production quantities, with a higher risk of selling out.
+Balanced: Balances the risk of leftover food against potential lost sales, providing a middle-ground recommendation.
+Safe Buffer: Prioritizes product availability by recommending higher production quantities to reduce the risk of stockouts, with a greater chance of leftovers.
+
 **Limitations:** This is an educational prototype using synthetic historical sales data and manually entered weather information.
 
 **Future Improvements:** Planned enhancements include live weather integration, point-of-sale (POS) connectivity, user authentication, persistent cloud storage, and automated email and text message delivery. Future versions may also incorporate more advanced machine learning techniques to improve forecasting accuracy.
