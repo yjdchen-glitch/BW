@@ -280,17 +280,18 @@ if page == "📋 Tomorrow's Forecast":
 
         # Display one combined table with editable recommendations
         editable = st.data_editor(
-            results[["Product", "Forecasted", "Recommended"]],
+            results[["Product", "Expected sales", "Recommended"]],
             hide_index=True,
             width=700,
-            disabled=["Product", "Forecasted"],
+            disabled=["Product", "Expected sales"],
             num_rows="fixed",
             key=f"forecast_adjustments_{planning_date}_{temperature}_{rain}_{strategy}",
             column_config={
                 "Product": st.column_config.TextColumn(
                     alignment="center"
                 ),
-                "Forecasted": st.column_config.NumberColumn(
+                "Expected sales": st.column_config.NumberColumn(
+                    label="Forecasted",
                     alignment="center",
                     format="%.1f"
                 ),
