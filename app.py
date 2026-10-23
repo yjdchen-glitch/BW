@@ -386,7 +386,7 @@ if page == "📋 Tomorrow's Forecast":
                         )
                     except Exception as err:
                         st.error(f"Email could not be sent: {err}")
-            )
+           
     except Exception as err:
         st.error(f"Forecast error: {err}")
 
