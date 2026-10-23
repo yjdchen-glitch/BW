@@ -4,6 +4,8 @@ from pathlib import Path
 import pandas as pd
 import streamlit as st
 from forecast import validate_sales, make_forecast
+import resend
+import re
 
 ROOT = Path(__file__).resolve().parent
 DEMO = ROOT / "data" / "historical_sales.csv"
@@ -336,6 +338,122 @@ if page == "📋 Tomorrow's Forecast":
                 file_name=f"bakewise_plan_{planning_date}.txt",
                 mime="text/plain"
             )
+            
+            # Test email notification
+            st.divider()
+            st.subheader("📧 Test Email Notification")
+
+            recipients_text = st.text_area(
+                "Recipient email addresses",
+                placeholder="owner@example.com\nbaker@example.com",
+                help="Enter one email address per line, or separate addresses with commas.",
+                height=100,
+                key="test_email_recipients"
+            )
+
+            if st.button("Send Test Email", type="secondary"):
+
+                import re
+                import resend
+
+                recipients = [
+                    email.strip()
+                    for email in re.split(r"[,;\n]+", recipients_text)
+                    if email.strip()
+                ]
+
+                if not recipients:
+                    st.warning("Please enter at least one email address.")
+
+                elif len(recipients) > 5:
+                    st.warning("Maximum 5 recipients for testing.")
+
+                elif any(
+                    not re.fullmatch(r"[^@\s]+@[^@\s]+\.[^@\s]+", email)
+                    for email in recipients
+                ):
+                    st.error("One or more email addresses are invalid.")
+
+                elif not st.secrets.get("RESEND_API_KEY"):
+                    st.error("Resend API key is not configured.")
+
+                elif not st.secrets.get("EMAIL_FROM"):
+                    st.error("Sender email is not configured.")
+
+                else:
+                    try:
+                        resend.api_key = st.secrets["RESEND_API_KEY"]
+
+                        response = resend.Emails.send({
+                            "from": st.secrets["EMAIL_FROM"],
+                            "to": recipients,
+                            "subject": f"BakeWise Test Production Plan - {planning_date}",
+                            "text": text_plan
+                        })
+
+                        st.success(
+                            "Test email accepted by Resend!"
+                        )
+
+                    except Exception as err:
+                        st.error(f"Email sending failed: {err}")
+
+            st.divider()
+            st.write("**Send Production Plan — Test Notification**")
+
+            recipients_text = st.text_input(
+                "Recipient email address(es)",
+                placeholder="owner@example.com, baker@example.com",
+                help="Separate multiple email addresses with commas.",
+                key="notification_recipients"
+            )
+
+            if st.button("Send Notification"):
+                recipients = [
+                    email.strip()
+                    for email in recipients_text.split(",")
+                    if email.strip()
+                ]
+
+                valid_email = re.compile(
+                    r"^[^@\s]+@[^@\s]+\.[^@\s]+$"
+                )
+
+                if not recipients:
+                    st.warning("Please enter at least one email address.")
+
+                elif len(recipients) > 5:
+                    st.warning("For testing, use no more than 5 recipients.")
+
+                elif any(
+                    not valid_email.fullmatch(email)
+                    for email in recipients
+                ):
+                    st.error("Please enter valid email addresses.")
+
+                elif not (
+                    st.secrets.get("RESEND_API_KEY")
+                    and st.secrets.get("EMAIL_FROM")
+                ):
+                    st.error("Email service is not configured yet.")
+
+                else:
+                    try:
+                        resend.api_key = st.secrets["RESEND_API_KEY"]
+
+                        response = resend.Emails.send({
+                            "from": st.secrets["EMAIL_FROM"],
+                            "to": recipients,
+                            "subject": f"BakeWise Production Plan - {planning_date}",
+                            "text": text_plan
+                        })
+
+                        st.success(
+                            "Notification accepted by email service."
+                        )
+
+                    except Exception as err:
+                        st.error(f"Email could not be sent: {err}")
 
             st.caption(
                 "Share the downloaded plan with staff. "
