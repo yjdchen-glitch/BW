@@ -391,7 +391,7 @@ if page == "📋 Tomorrow's Forecast":
            
     except Exception as err:
         st.error(f"Forecast error: {err}")
-    st.caption("**Email Notification (Demo):** For testing purposes, emails can only be sent to a predefined recipient address. Sending to additional recipients will be supported in future versions.")
+    st.caption("**Email Notification (Demo):** For testing purposes, emails can only be sent to the email address registered with the Resend account. Sending to other recipients will require additional email service configuration.")
 
 #with tab_history:
 if page == "📈 Time History":
