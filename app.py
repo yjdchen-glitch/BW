@@ -341,8 +341,7 @@ if page == "📋 Tomorrow's Forecast":
             
             st.divider()
             st.subheader("**Send Production Plan — Notification Test**")
-            st.caption("Share the production plan with staff. "
-                "Automatic scheduled email / text message is not included in this prototype."
+            st.caption("Share the production plan with staff. Automatic scheduled email and text message are currently not included in this prototype.")
             recipients_text = st.text_input(
                 "Recipient email address(es)",
                 placeholder="owner@example.com, baker@example.com",
